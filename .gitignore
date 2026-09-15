@@ -1,31 +1,15 @@
-# Node modules
-/node_modules
-
-# Compilation output
-/dist
-
-# pnpm deploy output
-/bundle
-
-# Hardhat Build Artifacts
-/artifacts
-
-# Hardhat compilation (v2) support directory
-/cache
-
-# Typechain output
-/types
-
-# Environment files
+node_modules
+dist
+build
 .env
-.env.*
-!.env.example
+*.log
 
-# Hardhat coverage reports
-/coverage
+blockchain/artifacts
+blockchain/cache
+blockchain/typechain-types
+blockchain/deployments
 
-# Gas snapshot files
-/.gas-snapshot
+backend/src/blockchain/generated/CredentialRegistry.json
+frontend/src/contracts/CredentialRegistry.json
 
-# Snapshot cheatcodes output
-/snapshots
+pgdata/

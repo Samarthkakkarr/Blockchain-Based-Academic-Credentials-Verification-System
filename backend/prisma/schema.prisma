@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+}
+
+enum CredentialStatus {
+  VALID
+  REVOKED
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+
+  issuedCredentials Credential[]  @relation("IssuedBy")
+  revocations       Revocation[]  @relation("RevokedBy")
+
+  @@map("admins")
+}
+
+model Credential {
+  id                      String            @id @default(uuid())
+  credentialId            String            @unique // e.g. CRED-2026-000001
+
+  // Off-chain data (PostgreSQL only)
+  studentName             String
+  studentId               String
+  universityName          String
+  degree                  String
+  course                  String
+  department              String
+  graduationYear          Int
+  issueDate               DateTime
+  grade                   String
+
+  // Hash + on-chain linkage
+  credentialHash          String            // 0x-prefixed keccak256 hash
+  blockchainTxHash        String?
+  blockchainCredentialId  String?           // usually same as credentialId
+  blockNumber             Int?
+  contractAddress         String?
+  network                 String?
+
+  status                  CredentialStatus  @default(VALID)
+
+  issuedById              String?
+  issuedBy                Admin?            @relation("IssuedBy", fields: [issuedById], references: [id])
+
+  revocation              Revocation?
+
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  @@index([status])
+  @@index([studentId])
+  @@map("credentials")
+}
+
+model Revocation {
+  id                String     @id @default(uuid())
+  credentialId      String     @unique
+  credential        Credential @relation(fields: [credentialId], references: [credentialId])
+
+  reason            String
+  revokedById       String?
+  revokedBy         Admin?     @relation("RevokedBy", fields: [revokedById], references: [id])
+
+  blockchainTxHash  String?
+  blockNumber       Int?
+
+  revokedAt         DateTime   @default(now())
+
+  @@map("revocations")
+}
